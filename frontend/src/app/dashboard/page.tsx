@@ -14,6 +14,7 @@ interface AnalysisResult {
 
 interface HistoryItem {
   id: number;
+  job_role: string;
   match_score: number;
   matched_skills: string[];
   missing_skills: string[];
@@ -30,6 +31,7 @@ export default function DashboardPage() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeText, setResumeText] = useState("");
 
+  const [jobRole, setJobRole] = useState("");
   const [jobDescription, setJobDescription] = useState("");
 
   const [loadingUpload, setLoadingUpload] = useState(false);
@@ -49,21 +51,16 @@ export default function DashboardPage() {
   const [selectedAnalysis, setSelectedAnalysis] =
     useState<HistoryItem | null>(null);
 
-  // =========================
-  // AUTHENTICATION CHECK
-  // =========================
   useEffect(() => {
     const checkAuthentication = async () => {
       const token = localStorage.getItem("token");
       const storedUser = localStorage.getItem("user");
 
-      // No token means user is not logged in
       if (!token) {
         window.location.href = "/login";
         return;
       }
 
-      // Load user information
       if (storedUser) {
         try {
           setUser(JSON.parse(storedUser));
@@ -72,7 +69,6 @@ export default function DashboardPage() {
         }
       }
 
-      // Verify token by calling protected history API
       try {
         setLoadingHistory(true);
 
@@ -88,11 +84,9 @@ export default function DashboardPage() {
 
         const data = await response.json();
 
-        // Token invalid / expired
         if (response.status === 401) {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
-
           window.location.href = "/login";
           return;
         }
@@ -115,9 +109,6 @@ export default function DashboardPage() {
     checkAuthentication();
   }, []);
 
-  // =========================
-  // LOGOUT
-  // =========================
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -125,9 +116,6 @@ export default function DashboardPage() {
     window.location.href = "/login";
   };
 
-  // =========================
-  // FETCH ANALYSIS HISTORY
-  // =========================
   const fetchHistory = async () => {
     try {
       setLoadingHistory(true);
@@ -151,11 +139,9 @@ export default function DashboardPage() {
 
       const data = await response.json();
 
-      // Token expired / invalid
       if (response.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-
         window.location.href = "/login";
         return;
       }
@@ -174,9 +160,6 @@ export default function DashboardPage() {
     }
   };
 
-  // =========================
-  // RESUME FILE SELECTION
-  // =========================
   const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -212,9 +195,6 @@ export default function DashboardPage() {
     setResumeFile(file);
   };
 
-  // =========================
-  // UPLOAD RESUME
-  // =========================
   const handleResumeUpload = async () => {
     if (!resumeFile) {
       setError("Please select a resume first.");
@@ -251,11 +231,9 @@ export default function DashboardPage() {
 
       const data = await response.json();
 
-      // Token expired / invalid
       if (response.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-
         window.location.href = "/login";
         return;
       }
@@ -282,10 +260,12 @@ export default function DashboardPage() {
     }
   };
 
-  // =========================
-  // ANALYSE RESUME
-  // =========================
   const handleAnalyse = async () => {
+    if (!jobRole.trim()) {
+      setError("Please enter the target job role.");
+      return;
+    }
+
     if (!resumeText.trim()) {
       setError(
         "Please upload your resume and extract the resume text first."
@@ -321,6 +301,7 @@ export default function DashboardPage() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
+            jobRole,
             resumeText,
             jobDescription,
           }),
@@ -329,11 +310,9 @@ export default function DashboardPage() {
 
       const data = await response.json();
 
-      // Token expired / invalid
       if (response.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-
         window.location.href = "/login";
         return;
       }
@@ -363,9 +342,6 @@ export default function DashboardPage() {
     }
   };
 
-  // =========================
-  // FORMAT DATE
-  // =========================
   const formatDate = (date: string) => {
     return new Date(date).toLocaleString("en-IN", {
       day: "2-digit",
@@ -376,9 +352,6 @@ export default function DashboardPage() {
     });
   };
 
-  // =========================
-  // AUTH CHECK SCREEN
-  // =========================
   if (checkingAuth) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
@@ -393,14 +366,8 @@ export default function DashboardPage() {
     );
   }
 
-  // =========================
-  // DASHBOARD
-  // =========================
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      {/* =========================
-          HEADER
-      ========================= */}
       <header className="border-b border-white/10 bg-slate-950/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <div>
@@ -435,9 +402,6 @@ export default function DashboardPage() {
       </header>
 
       <div className="mx-auto max-w-7xl px-6 py-10">
-        {/* =========================
-            HERO
-        ========================= */}
         <section className="mb-10">
           <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-blue-950/50 via-slate-900 to-violet-950/40 p-8 shadow-2xl">
             <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-blue-400">
@@ -453,16 +417,13 @@ export default function DashboardPage() {
             </h2>
 
             <p className="mt-4 max-w-2xl text-slate-400">
-              Compare your resume with a job description,
-              identify skill gaps, and get personalized AI
-              recommendations.
+              Compare your resume with a specific job role and
+              job description, identify skill gaps, and get
+              personalized AI recommendations.
             </p>
           </div>
         </section>
 
-        {/* =========================
-            ALERTS
-        ========================= */}
         {message && (
           <div className="mb-6 rounded-xl border border-green-500/20 bg-green-500/10 px-5 py-4 text-sm font-medium text-green-300">
             ✓ {message}
@@ -475,9 +436,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* =========================
-            NEW ANALYSIS
-        ========================= */}
         <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl sm:p-8">
           <div className="mb-8">
             <h2 className="text-2xl font-bold">
@@ -485,19 +443,47 @@ export default function DashboardPage() {
             </h2>
 
             <p className="mt-2 text-sm text-slate-400">
-              Upload your resume and paste the target job
-              description.
+              Enter your target job role, upload your resume,
+              and paste the job description.
             </p>
           </div>
 
+          <div className="mb-8">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/10 text-sm font-bold text-violet-400">
+                01
+              </div>
+
+              <div>
+                <h3 className="font-bold">
+                  Target Job Role
+                </h3>
+
+                <p className="text-xs text-slate-500">
+                  Enter the position you are targeting
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+              <input
+                type="text"
+                value={jobRole}
+                onChange={(e) => {
+                  setJobRole(e.target.value);
+                  setError("");
+                }}
+                placeholder="e.g. Full Stack Developer"
+                className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-violet-500/50"
+              />
+            </div>
+          </div>
+
           <div className="grid gap-8 lg:grid-cols-2">
-            {/* =========================
-                RESUME
-            ========================= */}
             <div>
               <div className="mb-3 flex items-center gap-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10 text-sm font-bold text-blue-400">
-                  01
+                  02
                 </div>
 
                 <div>
@@ -574,7 +560,6 @@ export default function DashboardPage() {
                     : "Upload Resume"}
                 </button>
 
-                {/* Resume Ready */}
                 {resumeText && (
                   <div className="mt-4 rounded-xl border border-green-500/20 bg-green-500/10 p-4">
                     <div className="flex items-center gap-2">
@@ -595,13 +580,10 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* =========================
-                JOB DESCRIPTION
-            ========================= */}
             <div>
               <div className="mb-3 flex items-center gap-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/10 text-sm font-bold text-violet-400">
-                  02
+                  03
                 </div>
 
                 <div>
@@ -632,13 +614,11 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* =========================
-              ANALYSE BUTTON
-          ========================= */}
           <div className="mt-8">
             <button
               onClick={handleAnalyse}
               disabled={
+                !jobRole.trim() ||
                 !resumeText ||
                 !jobDescription.trim() ||
                 loadingAnalysis
@@ -658,9 +638,6 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* =========================
-            CURRENT ANALYSIS RESULT
-        ========================= */}
         {analysisResult && (
           <section className="mt-10">
             <div className="mb-6">
@@ -669,12 +646,21 @@ export default function DashboardPage() {
               </h2>
 
               <p className="mt-2 text-sm text-slate-400">
-                AI-powered comparison between your resume
-                and the job description.
+                AI-powered comparison between your resume and
+                the selected job role and description.
               </p>
             </div>
 
-            {/* Match Score */}
+            <div className="mb-6 rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5">
+              <p className="text-xs font-semibold uppercase tracking-wider text-violet-400">
+                Target Job Role
+              </p>
+
+              <p className="mt-2 text-xl font-bold">
+                {jobRole}
+              </p>
+            </div>
+
             <div className="mb-6 rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-xl">
               <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
                 <div>
@@ -700,15 +686,13 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Matched Skills */}
               <div className="rounded-2xl border border-green-500/20 bg-slate-900/70 p-6">
                 <h3 className="text-lg font-bold text-green-400">
                   ✓ Matched Skills
                 </h3>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {analysisResult.matchedSkills.length >
-                  0 ? (
+                  {analysisResult.matchedSkills.length > 0 ? (
                     analysisResult.matchedSkills.map(
                       (skill, index) => (
                         <span
@@ -727,15 +711,13 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Missing Skills */}
               <div className="rounded-2xl border border-red-500/20 bg-slate-900/70 p-6">
                 <h3 className="text-lg font-bold text-red-400">
                   ✕ Missing Skills
                 </h3>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {analysisResult.missingSkills.length >
-                  0 ? (
+                  {analysisResult.missingSkills.length > 0 ? (
                     analysisResult.missingSkills.map(
                       (skill, index) => (
                         <span
@@ -755,15 +737,13 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Skill Gaps */}
             <div className="mt-6 rounded-2xl border border-white/10 bg-slate-900/70 p-6">
               <h3 className="text-lg font-bold">
                 🎯 Skill Gaps
               </h3>
 
               <div className="mt-4 space-y-3">
-                {analysisResult.skillGaps.length >
-                0 ? (
+                {analysisResult.skillGaps.length > 0 ? (
                   analysisResult.skillGaps.map(
                     (gap, index) => (
                       <div
@@ -786,15 +766,13 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Weaknesses */}
             <div className="mt-6 rounded-2xl border border-white/10 bg-slate-900/70 p-6">
               <h3 className="text-lg font-bold">
                 ⚠️ Resume Weaknesses
               </h3>
 
               <div className="mt-4 space-y-3">
-                {analysisResult.weaknesses.length >
-                0 ? (
+                {analysisResult.weaknesses.length > 0 ? (
                   analysisResult.weaknesses.map(
                     (weakness, index) => (
                       <div
@@ -817,15 +795,13 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Recommendations */}
             <div className="mt-6 rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6">
               <h3 className="text-lg font-bold text-blue-400">
                 💡 AI Recommendations
               </h3>
 
               <div className="mt-4 space-y-3">
-                {analysisResult.recommendations.length >
-                0 ? (
+                {analysisResult.recommendations.length > 0 ? (
                   analysisResult.recommendations.map(
                     (recommendation, index) => (
                       <div
@@ -848,7 +824,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* AI Summary */}
             <div className="mt-6 rounded-2xl border border-violet-500/20 bg-violet-500/5 p-6">
               <h3 className="text-lg font-bold text-violet-400">
                 🤖 AI Summary
@@ -861,9 +836,6 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* =========================
-            HISTORY
-        ========================= */}
         <section className="mt-12">
           <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
@@ -885,9 +857,7 @@ export default function DashboardPage() {
               disabled={loadingHistory}
               className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold transition hover:bg-white/10 disabled:opacity-40"
             >
-              {loadingHistory
-                ? "Refreshing..."
-                : "↻ Refresh"}
+              {loadingHistory ? "Refreshing..." : "↻ Refresh"}
             </button>
           </div>
 
@@ -911,42 +881,39 @@ export default function DashboardPage() {
                   className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-lg transition hover:border-blue-500/20"
                 >
                   <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-500/10 font-bold text-blue-400">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-500/10 font-bold text-blue-400">
                           {item.match_score}%
                         </div>
 
-                        <div>
+                        <div className="min-w-0">
                           <h3 className="font-bold">
                             Resume Analysis #{index + 1}
                           </h3>
 
-                          <p className="text-xs text-slate-500">
-                            {formatDate(
-                              item.created_at
-                            )}
+                          <p className="mt-1 text-sm font-semibold text-violet-300">
+                            {item.job_role ||
+                              "Job role not available"}
+                          </p>
+
+                          <p className="mt-1 text-xs text-slate-500">
+                            {formatDate(item.created_at)}
                           </p>
                         </div>
                       </div>
 
                       <div className="mt-4 flex flex-wrap gap-2 text-xs">
                         <span className="rounded-full bg-green-500/10 px-3 py-1 text-green-300">
-                          {item.matched_skills?.length ||
-                            0}{" "}
-                          matched
+                          {item.matched_skills?.length || 0} matched
                         </span>
 
                         <span className="rounded-full bg-red-500/10 px-3 py-1 text-red-300">
-                          {item.missing_skills?.length ||
-                            0}{" "}
-                          missing
+                          {item.missing_skills?.length || 0} missing
                         </span>
 
                         <span className="rounded-full bg-blue-500/10 px-3 py-1 text-blue-300">
-                          {item.recommendations
-                            ?.length || 0}{" "}
-                          recommendations
+                          {item.recommendations?.length || 0} recommendations
                         </span>
                       </div>
                     </div>
@@ -967,9 +934,6 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      {/* =========================
-          HISTORY MODAL
-      ========================= */}
       {selectedAnalysis && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
@@ -982,14 +946,23 @@ export default function DashboardPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm text-slate-500">
-                  {formatDate(
-                    selectedAnalysis.created_at
-                  )}
+                  {formatDate(selectedAnalysis.created_at)}
                 </p>
 
                 <h2 className="mt-1 text-2xl font-bold">
                   Previous Analysis
                 </h2>
+
+                <div className="mt-4 rounded-2xl border border-violet-500/20 bg-violet-500/5 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-violet-400">
+                    Target Job Role
+                  </p>
+
+                  <p className="mt-1 text-lg font-bold">
+                    {selectedAnalysis.job_role ||
+                      "Job role not available"}
+                  </p>
+                </div>
               </div>
 
               <button
@@ -1002,7 +975,6 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {/* Score */}
             <div className="mt-6 rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6 text-center">
               <p className="text-sm text-slate-500">
                 Match Score
@@ -1013,107 +985,131 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            {/* Matched */}
             <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.02] p-5">
               <h3 className="font-bold text-green-400">
                 ✓ Matched Skills
               </h3>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                {selectedAnalysis.matched_skills?.map(
-                  (skill, index) => (
-                    <span
-                      key={index}
-                      className="rounded-full bg-green-500/10 px-3 py-1.5 text-sm text-green-300"
-                    >
-                      {skill}
-                    </span>
+                {selectedAnalysis.matched_skills?.length > 0 ? (
+                  selectedAnalysis.matched_skills.map(
+                    (skill, index) => (
+                      <span
+                        key={index}
+                        className="rounded-full bg-green-500/10 px-3 py-1.5 text-sm text-green-300"
+                      >
+                        {skill}
+                      </span>
+                    )
                   )
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    No matched skills found.
+                  </p>
                 )}
               </div>
             </div>
 
-            {/* Missing */}
             <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.02] p-5">
               <h3 className="font-bold text-red-400">
                 ✕ Missing Skills
               </h3>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                {selectedAnalysis.missing_skills?.map(
-                  (skill, index) => (
-                    <span
-                      key={index}
-                      className="rounded-full bg-red-500/10 px-3 py-1.5 text-sm text-red-300"
-                    >
-                      {skill}
-                    </span>
+                {selectedAnalysis.missing_skills?.length > 0 ? (
+                  selectedAnalysis.missing_skills.map(
+                    (skill, index) => (
+                      <span
+                        key={index}
+                        className="rounded-full bg-red-500/10 px-3 py-1.5 text-sm text-red-300"
+                      >
+                        {skill}
+                      </span>
+                    )
                   )
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    No major missing skills found.
+                  </p>
                 )}
               </div>
             </div>
 
-            {/* Skill Gaps */}
             <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.02] p-5">
               <h3 className="font-bold">
                 🎯 Skill Gaps
               </h3>
 
               <div className="mt-4 space-y-3">
-                {selectedAnalysis.skill_gaps?.map(
-                  (gap, index) => (
-                    <p
-                      key={index}
-                      className="text-sm leading-6 text-slate-300"
-                    >
-                      {index + 1}. {gap}
-                    </p>
+                {selectedAnalysis.skill_gaps?.length > 0 ? (
+                  selectedAnalysis.skill_gaps.map(
+                    (gap, index) => (
+                      <p
+                        key={index}
+                        className="text-sm leading-6 text-slate-300"
+                      >
+                        {index + 1}. {gap}
+                      </p>
+                    )
                   )
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    No major skill gaps identified.
+                  </p>
                 )}
               </div>
             </div>
 
-            {/* Weaknesses */}
             <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.02] p-5">
               <h3 className="font-bold">
                 ⚠️ Resume Weaknesses
               </h3>
 
               <div className="mt-4 space-y-3">
-                {selectedAnalysis.weaknesses?.map(
-                  (weakness, index) => (
-                    <p
-                      key={index}
-                      className="text-sm leading-6 text-slate-300"
-                    >
-                      {index + 1}. {weakness}
-                    </p>
+                {selectedAnalysis.weaknesses?.length > 0 ? (
+                  selectedAnalysis.weaknesses.map(
+                    (weakness, index) => (
+                      <p
+                        key={index}
+                        className="text-sm leading-6 text-slate-300"
+                      >
+                        {index + 1}. {weakness}
+                      </p>
+                    )
                   )
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    No major weaknesses identified.
+                  </p>
                 )}
               </div>
             </div>
 
-            {/* Recommendations */}
             <div className="mt-6 rounded-2xl border border-blue-500/20 bg-blue-500/5 p-5">
               <h3 className="font-bold text-blue-400">
                 💡 AI Recommendations
               </h3>
 
               <div className="mt-4 space-y-3">
-                {selectedAnalysis.recommendations?.map(
-                  (recommendation, index) => (
-                    <p
-                      key={index}
-                      className="text-sm leading-6 text-slate-300"
-                    >
-                      {index + 1}. {recommendation}
-                    </p>
+                {selectedAnalysis.recommendations?.length > 0 ? (
+                  selectedAnalysis.recommendations.map(
+                    (recommendation, index) => (
+                      <p
+                        key={index}
+                        className="text-sm leading-6 text-slate-300"
+                      >
+                        {index + 1}. {recommendation}
+                      </p>
+                    )
                   )
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    No recommendations available.
+                  </p>
                 )}
               </div>
             </div>
 
-            {/* Summary */}
             <div className="mt-6 rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5">
               <h3 className="font-bold text-violet-400">
                 🤖 AI Summary
