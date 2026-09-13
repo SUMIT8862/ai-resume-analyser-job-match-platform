@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 
@@ -9,7 +10,7 @@ const analysisRoutesModule = require("./routes/analysis");
 
 const authMiddlewareModule = require("./middleware/authMiddleware");
 
-// Vercel compatibility
+// Handle different module export formats
 const getModuleExport = (module) => {
   if (typeof module === "function") {
     return module;
@@ -29,6 +30,11 @@ const authMiddleware = getModuleExport(authMiddlewareModule);
 
 const app = express();
 
+/* =========================
+   MIDDLEWARE
+========================= */
+
+// CORS
 app.use(
   cors({
     origin: true,
@@ -36,16 +42,26 @@ app.use(
   })
 );
 
+// JSON body parser
 app.use(express.json());
 
-// API Routes
+/* =========================
+   API ROUTES
+========================= */
+
+// Authentication
 app.use("/api/auth", authRoutes);
 
+// Resume upload/extraction
 app.use("/api/resume", resumeRoutes);
 
+// AI analysis/history
 app.use("/api/analysis", analysisRoutes);
 
-// Home route
+/* =========================
+   HOME ROUTE
+========================= */
+
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -53,7 +69,21 @@ app.get("/", (req, res) => {
   });
 });
 
-// Database test route
+/* =========================
+   HEALTH CHECK
+========================= */
+
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "AI Resume Analyser backend is running successfully!",
+  });
+});
+
+/* =========================
+   DATABASE TEST
+========================= */
+
 app.get("/api/test-db", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
@@ -69,11 +99,15 @@ app.get("/api/test-db", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Database connection failed",
+      error: error.message,
     });
   }
 });
 
-// Protected route
+/* =========================
+   PROTECTED ROUTE
+========================= */
+
 app.get("/api/protected", authMiddleware, (req, res) => {
   res.json({
     success: true,
@@ -82,15 +116,41 @@ app.get("/api/protected", authMiddleware, (req, res) => {
   });
 });
 
-// Local development server
+/* =========================
+   404 HANDLER
+========================= */
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "API route not found",
+  });
+});
+
+/* =========================
+   ERROR HANDLER
+========================= */
+
+app.use((err, req, res, next) => {
+  console.error("Server error:", err);
+
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
+  });
+});
+
+/* =========================
+   START SERVER
+========================= */
+
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
 
-  app.listen(PORT, () => {
-    console.log(
-      `Backend server running on http://localhost:${PORT}`
-    );
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Backend server running on port ${PORT}`);
   });
 }
 
 module.exports = app;
+
