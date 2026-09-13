@@ -3,17 +3,31 @@ const cors = require("cors");
 
 const pool = require("./config/db");
 
-const authRoutes = require("./routes/auth");
-const resumeRoutes = require("./routes/resume");
-const analysisRoutes = require("./routes/analysis");
+const authRoutesModule = require("./routes/auth");
+const resumeRoutesModule = require("./routes/resume");
+const analysisRoutesModule = require("./routes/analysis");
 
-const authMiddleware = require("./middleware/authMiddleware");
+const authMiddlewareModule = require("./middleware/authMiddleware");
+
+// Vercel compatibility
+const getModuleExport = (module) => {
+  if (typeof module === "function") {
+    return module;
+  }
+
+  if (module && typeof module.default === "function") {
+    return module.default;
+  }
+
+  return module;
+};
+
+const authRoutes = getModuleExport(authRoutesModule);
+const resumeRoutes = getModuleExport(resumeRoutesModule);
+const analysisRoutes = getModuleExport(analysisRoutesModule);
+const authMiddleware = getModuleExport(authMiddlewareModule);
 
 const app = express();
-
-// =========================
-// CORS
-// =========================
 
 app.use(
   cors({
@@ -22,26 +36,16 @@ app.use(
   })
 );
 
-// =========================
-// JSON Middleware
-// =========================
-
 app.use(express.json());
 
-// =========================
 // API Routes
-// =========================
-
 app.use("/api/auth", authRoutes);
 
 app.use("/api/resume", resumeRoutes);
 
 app.use("/api/analysis", analysisRoutes);
 
-// =========================
-// Home Route
-// =========================
-
+// Home route
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -49,10 +53,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// =========================
-// Test Database
-// =========================
-
+// Database test route
 app.get("/api/test-db", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
@@ -72,32 +73,16 @@ app.get("/api/test-db", async (req, res) => {
   }
 });
 
-// =========================
-// Protected Route Test
-// =========================
+// Protected route
+app.get("/api/protected", authMiddleware, (req, res) => {
+  res.json({
+    success: true,
+    message: "You accessed a protected route successfully!",
+    user: req.user,
+  });
+});
 
-app.get(
-  "/api/protected",
-  authMiddleware,
-  (req, res) => {
-    res.json({
-      success: true,
-      message: "You accessed a protected route successfully!",
-      user: req.user,
-    });
-  }
-);
-
-// =========================
-// Export App for Vercel
-// =========================
-
-module.exports = app;
-
-// =========================
-// Start Server Locally
-// =========================
-
+// Local development server
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
 
@@ -107,3 +92,5 @@ if (require.main === module) {
     );
   });
 }
+
+module.exports = app;
