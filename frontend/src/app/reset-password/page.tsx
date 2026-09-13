@@ -54,7 +54,7 @@ export default function ResetPasswordPage() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/reset-password",
+        "/api/backend/api/auth/reset-password",
         {
           method: "POST",
           headers: {

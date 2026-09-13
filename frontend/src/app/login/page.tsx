@@ -26,7 +26,7 @@ export default function LoginPage() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/login",
+        "/api/backend/api/auth/login",
         {
           method: "POST",
           headers: {
@@ -68,7 +68,6 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-10 text-white">
       <div className="mx-auto flex min-h-[80vh] max-w-md items-center justify-center">
-
         <div className="w-full rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-2xl">
 
           {/* Brand */}

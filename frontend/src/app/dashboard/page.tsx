@@ -73,7 +73,7 @@ export default function DashboardPage() {
         setLoadingHistory(true);
 
         const response = await fetch(
-          "http://localhost:5000/api/analysis/history",
+          "/api/backend/api/analysis/history",
           {
             method: "GET",
             headers: {
@@ -99,7 +99,10 @@ export default function DashboardPage() {
 
         setHistory(data.analyses || []);
       } catch (error: any) {
-        console.error("Authentication/History error:", error.message);
+        console.error(
+          "Authentication/History error:",
+          error.message
+        );
       } finally {
         setLoadingHistory(false);
         setCheckingAuth(false);
@@ -128,7 +131,7 @@ export default function DashboardPage() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/analysis/history",
+        "/api/backend/api/analysis/history",
         {
           method: "GET",
           headers: {
@@ -219,7 +222,7 @@ export default function DashboardPage() {
       formData.append("resume", resumeFile);
 
       const response = await fetch(
-        "http://localhost:5000/api/resume/upload",
+        "/api/backend/api/resume/upload",
         {
           method: "POST",
           headers: {
@@ -250,7 +253,10 @@ export default function DashboardPage() {
         "Resume uploaded and text extracted successfully."
       );
     } catch (error: any) {
-      console.error("Resume upload error:", error.message);
+      console.error(
+        "Resume upload error:",
+        error.message
+      );
 
       setError(
         error.message || "Unable to upload resume."
@@ -293,7 +299,7 @@ export default function DashboardPage() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/analysis/analyse",
+        "/api/backend/api/analysis/analyse",
         {
           method: "POST",
           headers: {
@@ -331,7 +337,10 @@ export default function DashboardPage() {
 
       await fetchHistory();
     } catch (error: any) {
-      console.error("Analysis error:", error.message);
+      console.error(
+        "Analysis error:",
+        error.message
+      );
 
       setError(
         error.message ||
@@ -534,9 +543,11 @@ export default function DashboardPage() {
                         </p>
 
                         <p className="text-xs text-slate-500">
-                          {(resumeFile.size / 1024 / 1024).toFixed(
-                            2
-                          )}{" "}
+                          {(
+                            resumeFile.size /
+                            1024 /
+                            1024
+                          ).toFixed(2)}{" "}
                           MB
                         </p>
                       </div>
@@ -857,7 +868,9 @@ export default function DashboardPage() {
               disabled={loadingHistory}
               className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold transition hover:bg-white/10 disabled:opacity-40"
             >
-              {loadingHistory ? "Refreshing..." : "↻ Refresh"}
+              {loadingHistory
+                ? "Refreshing..."
+                : "↻ Refresh"}
             </button>
           </div>
 
@@ -905,15 +918,18 @@ export default function DashboardPage() {
 
                       <div className="mt-4 flex flex-wrap gap-2 text-xs">
                         <span className="rounded-full bg-green-500/10 px-3 py-1 text-green-300">
-                          {item.matched_skills?.length || 0} matched
+                          {item.matched_skills?.length || 0}{" "}
+                          matched
                         </span>
 
                         <span className="rounded-full bg-red-500/10 px-3 py-1 text-red-300">
-                          {item.missing_skills?.length || 0} missing
+                          {item.missing_skills?.length || 0}{" "}
+                          missing
                         </span>
 
                         <span className="rounded-full bg-blue-500/10 px-3 py-1 text-blue-300">
-                          {item.recommendations?.length || 0} recommendations
+                          {item.recommendations?.length || 0}{" "}
+                          recommendations
                         </span>
                       </div>
                     </div>
@@ -946,7 +962,9 @@ export default function DashboardPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm text-slate-500">
-                  {formatDate(selectedAnalysis.created_at)}
+                  {formatDate(
+                    selectedAnalysis.created_at
+                  )}
                 </p>
 
                 <h2 className="mt-1 text-2xl font-bold">
