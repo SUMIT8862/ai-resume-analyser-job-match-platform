@@ -11,15 +11,14 @@ const authMiddleware = require("./middleware/authMiddleware");
 
 const app = express();
 
-const PORT = 5000;
-
 // =========================
 // CORS
 // =========================
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: true,
+    credentials: true,
   })
 );
 
@@ -44,7 +43,10 @@ app.use("/api/analysis", analysisRoutes);
 // =========================
 
 app.get("/", (req, res) => {
-  res.send("AI Resume Analyser Backend is running!");
+  res.json({
+    success: true,
+    message: "AI Resume Analyser Backend is running!",
+  });
 });
 
 // =========================
@@ -61,10 +63,7 @@ app.get("/api/test-db", async (req, res) => {
       time: result.rows[0].now,
     });
   } catch (error) {
-    console.error(
-      "Database test error:",
-      error.message
-    );
+    console.error("Database test error:", error.message);
 
     res.status(500).json({
       success: false,
@@ -83,19 +82,28 @@ app.get(
   (req, res) => {
     res.json({
       success: true,
-      message:
-        "You accessed a protected route successfully!",
+      message: "You accessed a protected route successfully!",
       user: req.user,
     });
   }
 );
 
 // =========================
-// Start Server
+// Export App for Vercel
 // =========================
 
-app.listen(PORT, () => {
-  console.log(
-    `Backend server running on http://localhost:${PORT}`
-  );
-});
+module.exports = app;
+
+// =========================
+// Start Server Locally
+// =========================
+
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+
+  app.listen(PORT, () => {
+    console.log(
+      `Backend server running on http://localhost:${PORT}`
+    );
+  });
+}
