@@ -73,7 +73,7 @@ export default function DashboardPage() {
         setLoadingHistory(true);
 
         const response = await fetch(
-          "/api/backend/api/analysis/history",
+          `${process.env.NEXT_PUBLIC_API_URL}/api/analysis/history`,
           {
             method: "GET",
             headers: {
@@ -131,7 +131,7 @@ export default function DashboardPage() {
       }
 
       const response = await fetch(
-        "/api/backend/api/analysis/history",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/analysis/history`,
         {
           method: "GET",
           headers: {
@@ -222,7 +222,7 @@ export default function DashboardPage() {
       formData.append("resume", resumeFile);
 
       const response = await fetch(
-        "/api/backend/api/resume/upload",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resume/upload`,
         {
           method: "POST",
           headers: {
@@ -299,7 +299,7 @@ export default function DashboardPage() {
       }
 
       const response = await fetch(
-        "/api/backend/api/analysis/analyse",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/analysis/analyse`,
         {
           method: "POST",
           headers: {

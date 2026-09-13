@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
       console.log("Forgot password request:", email);
 
       const response = await fetch(
-        "/api/backend/api/auth/forgot-password",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
         {
           method: "POST",
           headers: {

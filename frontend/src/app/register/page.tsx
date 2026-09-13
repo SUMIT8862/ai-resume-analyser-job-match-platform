@@ -38,7 +38,7 @@ export default function RegisterPage() {
 
     try {
       const response = await fetch(
-        "/api/backend/api/auth/register",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
         {
           method: "POST",
           headers: {
@@ -75,8 +75,8 @@ export default function RegisterPage() {
     <main className="min-h-screen bg-slate-950 px-4 py-10 text-white">
       <div className="mx-auto flex min-h-[80vh] max-w-md items-center justify-center">
         <div className="w-full rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-2xl">
-          
-          {/* Logo / Brand */}
+
+          {/* Brand */}
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold">
               AI Resume Analyser
@@ -99,9 +99,9 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          {/* Form */}
+          {/* Register Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            
+
             {/* Name */}
             <div>
               <label
@@ -205,6 +205,7 @@ export default function RegisterPage() {
               Login
             </a>
           </div>
+
         </div>
       </div>
     </main>
