@@ -6,21 +6,20 @@
     },
     "backend": {
       "root": "backend/",
-      "entrypoint": "server:app"
+      "framework": "express",
+      "entrypoint": "server.js"
     }
   },
   "rewrites": [
     {
-      "source": "/api/backend(/.*)?",
+      "source": "/api/backend/(.*)",
       "destination": {
-        "type": "service",
         "service": "backend"
       }
     },
     {
       "source": "/(.*)",
       "destination": {
-        "type": "service",
         "service": "frontend"
       }
     }
