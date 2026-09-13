@@ -1,6 +1,5 @@
 const express = require("express");
 const path = require("path");
-const fs = require("fs");
 
 const upload = require("../middleware/resumeUpload");
 const authMiddleware = require("../middleware/authMiddleware");
@@ -27,9 +26,7 @@ router.post(
       // =========================
       // Extract Resume Text
       // =========================
-      const resumeText = await extractResumeText(
-        req.file.path
-      );
+      const resumeText = await extractResumeText(req.file);
 
       if (!resumeText) {
         return res.status(400).json({
@@ -47,8 +44,7 @@ router.post(
         message: "Resume uploaded and text extracted successfully.",
         file: {
           originalName: req.file.originalname,
-          fileName: req.file.filename,
-          filePath: req.file.path,
+          fileName: req.file.originalname,
           fileSize: req.file.size,
           fileType: path
             .extname(req.file.originalname)
@@ -65,50 +61,6 @@ router.post(
       res.status(500).json({
         success: false,
         message: "Unable to process the resume.",
-      });
-    }
-  }
-);
-
-// =========================
-// Delete Uploaded Resume
-// =========================
-router.delete(
-  "/delete/:fileName",
-  authMiddleware,
-  async (req, res) => {
-    try {
-      const fileName = req.params.fileName;
-
-      const filePath = path.join(
-        __dirname,
-        "..",
-        "uploads",
-        fileName
-      );
-
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({
-          success: false,
-          message: "Resume file not found.",
-        });
-      }
-
-      fs.unlinkSync(filePath);
-
-      res.status(200).json({
-        success: true,
-        message: "Resume deleted successfully.",
-      });
-    } catch (error) {
-      console.error(
-        "Resume delete error:",
-        error.message
-      );
-
-      res.status(500).json({
-        success: false,
-        message: "Unable to delete resume.",
       });
     }
   }

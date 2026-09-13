@@ -1,21 +1,23 @@
-const fs = require("fs");
 const path = require("path");
 const pdfParse = require("pdf-parse");
-
 const mammoth = require("mammoth");
 
-const extractResumeText = async (filePath) => {
+const extractResumeText = async (file) => {
   try {
-    const extension = path.extname(filePath).toLowerCase();
+    if (!file || !file.buffer) {
+      throw new Error("Resume file buffer is missing.");
+    }
+
+    const extension = path
+      .extname(file.originalname)
+      .toLowerCase();
 
     // =========================
     // PDF Resume
     // =========================
     if (extension === ".pdf") {
-      const fileBuffer = fs.readFileSync(filePath);
-
       const pdfParser = new pdfParse.PDFParse({
-        data: fileBuffer,
+        data: file.buffer,
       });
 
       const result = await pdfParser.getText();
@@ -30,7 +32,7 @@ const extractResumeText = async (filePath) => {
     // =========================
     if (extension === ".docx") {
       const result = await mammoth.extractRawText({
-        path: filePath,
+        buffer: file.buffer,
       });
 
       return result.value.trim();
